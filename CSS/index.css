@@ -29,6 +29,7 @@ body {
     width: 100%;
     max-width: 1200px;
     padding: 100px;
+    box-sizing: border-box; /* Added to ensure padding is included in width */
 }
 
 .game-option {
@@ -57,4 +58,39 @@ body {
 .game-option:hover {
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 3em;
+    }
+
+    .container {
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .game-option {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 2.5em;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    .game-option {
+        padding: 5px;
+    }
+
+    .game-option p {
+        font-size: 1em;
+    }
 }
