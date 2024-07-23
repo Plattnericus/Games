@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falling Strawberries</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #505050;
+            overflow: hidden;
+        }
+        canvas {
+            background-color: #333;
+        }
+        .truck {
+            position: absolute;
+            width: 120px;
+            height: 60px;
+            background: #444;
+            border-radius: 5px;
+            bottom: 60px;
+            display: none;
+            z-index: 10;
+        }
+        .truck .cargo {
+            position: absolute;
+            top: 0;
+            left: 30px;
+            width: 60px;
+            height: 40px;
+            background: #555;
+            border-radius: 5px;
+        }
+        .truck .cab {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 40px;
+            height: 40px;
+            background: #777;
+            border-radius: 5px;
+        }
+        .truck .wheel {
+            position: absolute;
+            bottom: -10px;
+            width: 20px;
+            height: 20px;
+            background: #222;
+            border-radius: 50%;
+        }
+        .truck .wheel.left {
+            left: 10px;
+        }
+        .truck .wheel.right {
+            right: 10px;
+        }
+        .dust {
+            position: absolute;
+            bottom: 60px;
+            left: 120px;
+            width: 60px;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            animation: dust 1s infinite;
+        }
+        @keyframes dust {
+            0% { transform: translateX(0); opacity: 1; }
+            50% { transform: translateX(20px); opacity: 0.5; }
+            100% { transform: translateX(40px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div class="truck" id="truck">
+        <div class="cargo"></div>
+        <div class="cab"></div>
+        <div class="wheel left"></div>
+        <div class="wheel right"></div>
+        <div class="dust"></div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        const basket = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 60,
+            width: 50,
+            height: 50,
+            collected: 0
+        };
+
+        const strawberries = [];
+        let score = 0;
+        let truckActive = false;
+        const truck = document.getElementById('truck');
+
+        function drawBasket() {
+            ctx.fillStyle = '#8B4513'; // brown color for the basket
+            ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
+            ctx.fillStyle = '#FFD700'; // gold color for the rim
+            ctx.fillRect(basket.x, basket.y, basket.width, 10); // rim of the basket
+            ctx.strokeStyle = '#000000'; // black color for the outline
+            ctx.strokeRect(basket.x, basket.y, basket.width, basket.height);
+        }
+
+        function drawStrawberries() {
+            strawberries.forEach(strawberry => {
+                ctx.beginPath();
+                ctx.arc(strawberry.x, strawberry.y, strawberry.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff0000'; // red color for strawberries
+                ctx.fill();
+            });
+        }
+
+        function updateStrawberries() {
+            for (let i = strawberries.length - 1; i >= 0; i--) {
+                strawberries[i].y += strawberries[i].dy;
+
+                if (strawberries[i].y - strawberries[i].radius > canvas.height) {
+                    strawberries.splice(i, 1);
+                }
+
+                if (strawberries[i] &&
+                    strawberries[i].y + strawberries[i].radius > basket.y &&
+                    strawberries[i].x > basket.x &&
+                    strawberries[i].x < basket.x + basket.width) {
+                    strawberries.splice(i, 1);
+                    basket.collected++;
+                    score++;
+                }
+            }
+
+            if (Math.random() < 0.05) {
+                const radius = Math.random() * 20 + 10;
+                const x = Math.random() * (canvas.width - radius * 2) + radius;
+                strawberries.push({ x, y: -radius, radius, dy: Math.random() * 2 + 2 });
+            }
+        }
+
+        function drawScore() {
+            ctx.fillStyle = '#fff';
+            ctx.font = '24px Arial';
+            ctx.fillText(`Score: ${score}`, 20, 30);
+        }
+
+        function moveBasket(e) {
+            const rect = canvas.getBoundingClientRect();
+            basket.x = e.clientX - rect.left - basket.width / 2;
+            if (basket.x < 0) basket.x = 0;
+            if (basket.x + basket.width > canvas.width) basket.x = canvas.width - basket.width;
+        }
+
+        function touchMoveBasket(e) {
+            const rect = canvas.getBoundingClientRect();
+            basket.x = e.touches[0].clientX - rect.left - basket.width / 2;
+            if (basket.x < 0) basket.x = 0;
+            if (basket.x + basket.width > canvas.width) basket.x = canvas.width - basket.width;
+        }
+
+        function moveTruck() {
+            let truckX = canvas.width;
+            const truckWidth = truck.offsetWidth;
+            const truckSpeed = 5;
+
+            truck.style.display = 'block';
+
+            function animateTruck() {
+                if (truckX + truckWidth < 0) {
+                    // Truck is off-screen
+                    truck.style.display = 'none';
+                    truckActive = false; // Reset truckActive after animation
+                    requestAnimationFrame(update); // Continue the game loop
+                    return;
+                }
+
+                truckX -= truckSpeed;
+                truck.style.left = truckX + 'px';
+
+                requestAnimationFrame(animateTruck);
+            }
+
+            animateTruck();
+        }
+
+        function update() {
+            if (truckActive) {
+                // If truck is active, just draw it
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBasket();
+            drawStrawberries();
+            updateStrawberries();
+            drawScore();
+
+            if (basket.collected >= 20 && !truckActive) {
+                truckActive = true;
+                moveTruck();
+                basket.collected = 0; // Reset collected strawberries after the truck animation
+            } else {
+                requestAnimationFrame(update);
+            }
+        }
+
+        canvas.addEventListener('mousemove', moveBasket);
+        canvas.addEventListener('touchmove', touchMoveBasket);
+
+        update();
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower Defense Spiel</title>
+    <link rel="stylesheet" href="../CSS/tower_defence.css">
+</head>
+<body>
+ <h1>Tower Defense Spiel</h1>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="controls">
+            <button id="startButton">Start</button>
+            <div id="towerControls">
+                <h2>Türme</h2>
+                <button id="addTower">Turm kaufen (1000 Münzen)</button>
+                <p id="coinDisplay">Münzen: 10000</p>
+                <div id="inventory">
+                    <h3></h3>
+                    <div id="inventorySlots">
+                        <!-- Inventory slots will be generated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="gameOverScreen">
+        <h2>GAME OVER</h2>
+    </div>
+    <script src="../JavaScript/tower_defence.js"></script>
+</body>
+</html>
